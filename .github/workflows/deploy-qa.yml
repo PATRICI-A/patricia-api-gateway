@@ -1,0 +1,28 @@
+name: Deploy to QA
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    name: Deploy to QA EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.QA_EC2_HOST }}
+          username: ${{ secrets.QA_EC2_USER }}
+          key: ${{ secrets.QA_EC2_SSH_KEY }}
+          script: |
+            cd /app/patricia-api-gateway
+            git pull origin develop
+            docker compose --env-file .env pull
+            docker compose --env-file .env up -d --remove-orphans
+            docker image prune -f

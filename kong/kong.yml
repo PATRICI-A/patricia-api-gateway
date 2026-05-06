@@ -1,0 +1,109 @@
+_format_version: "3.0"
+_transform: true
+
+# ─────────────────────────────────────────────────────────────
+#  PATRICIA – Kong declarative config (DB-less)
+#
+#  Cómo agregar un nuevo microservicio:
+#  1. Agregar un bloque en `services` con la URL interna del contenedor
+#  2. Agregar las rutas en `routes` dentro del servicio
+#  3. Agregar el servicio en docker-compose.yml
+#  4. Hacer `docker-compose restart kong` para recargar la config
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Auth Service ───────────────────────────────────────────
+  - name: auth-service
+    url: http://auth-service:8080
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: auth-routes
+        paths:
+          - /api/v1/auth
+        strip_path: false
+        methods:
+          - POST
+          - OPTIONS
+
+  # ── User Service ───────────────────────────────────────────
+  - name: user-service
+    url: http://user-service:8081
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: user-routes
+        paths:
+          - /api/v1/users
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+
+  # ── Registration Service ───────────────────────────────────
+  - name: registration-service
+    url: http://registration-service:8082
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: registration-routes
+        paths:
+          - /api/v1/registration
+        strip_path: false
+        methods:
+          - POST
+          - OPTIONS
+
+  # ── Servicio 4 ─────────────────────────────────────────────
+  # - name: nombre-servicio
+  #   url: http://nombre-servicio:808X
+  #   routes:
+  #     - name: nombre-routes
+  #       paths:
+  #         - /api/v1/nombre
+  #       strip_path: false
+
+  # ── Servicio 5 ... 12: mismo patrón ────────────────────────
+
+
+# ─────────────────────────────────────────────────────────────
+#  Plugins globales (aplican a TODOS los servicios)
+# ─────────────────────────────────────────────────────────────
+plugins:
+
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - Accept
+      exposed_headers:
+        - Authorization
+      credentials: true
+      max_age: 3600
+
+  - name: rate-limiting
+    config:
+      minute: 100
+      hour: 3000
+      policy: local
+      fault_tolerant: true
+      hide_client_headers: false
+
+  - name: request-size-limiting
+    config:
+      allowed_payload_size: 5
