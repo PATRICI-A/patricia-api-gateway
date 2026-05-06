@@ -4,18 +4,33 @@ _transform: true
 # ─────────────────────────────────────────────────────────────
 #  PATRICIA – Kong declarative config (DB-less)
 #
+#  Validación JWT:
+#  - Kong valida el token en TODAS las rutas excepto /api/v1/auth/**
+#  - Si el token es inválido → Kong devuelve 401 sin tocar el servicio
+#  - Los servicios solo decodifican el sub (userId) del token,
+#    no necesitan verificar la firma
+#
 #  Cómo agregar un nuevo microservicio:
-#  1. Agregar un bloque en `services` con la URL interna del contenedor
+#  1. Agregar un bloque en `services`
 #  2. Agregar las rutas en `routes` dentro del servicio
 #  3. Agregar el servicio en docker-compose.yml
-#  4. Hacer `docker-compose restart kong` para recargar la config
+#  4. Hacer `docker compose restart kong` para recargar la config
 # ─────────────────────────────────────────────────────────────
 
+# ── Consumer genérico para validación JWT ─────────────────────
+# Kong necesita un consumer con el secret para verificar los tokens
+consumers:
+  - username: patricia-services
+    jwt_secrets:
+      - key: "patricia-auth-service"   # debe coincidir con iss en el JWT
+        secret: "{vault://env/JWT_SECRET}"
+
+# ─────────────────────────────────────────────────────────────
 services:
 
-  # ── Auth Service ───────────────────────────────────────────
+  # ── Auth Service (público — NO requiere JWT) ───────────────
   - name: auth-service
-    url: http://auth-service:8080
+    url: http://auth-service:9090
     connect_timeout: 10000
     read_timeout: 30000
     routes:
@@ -26,16 +41,20 @@ services:
         methods:
           - POST
           - OPTIONS
+    plugins:
+      - name: jwt
+        enabled: false   # auth no requiere token (es donde se obtiene)
 
-  # ── User Service ───────────────────────────────────────────
-  - name: user-service
-    url: http://user-service:8081
+  # ── Profile Service ────────────────────────────────────────
+  - name: matchpuff-profile-service
+    url: http://matchpuff-profile-service:8081
     connect_timeout: 10000
     read_timeout: 30000
     routes:
-      - name: user-routes
+      - name: profile-routes
         paths:
           - /api/v1/users
+          - /api/v1/profiles
         strip_path: false
         methods:
           - GET
@@ -45,30 +64,18 @@ services:
           - DELETE
           - OPTIONS
 
-  # ── Registration Service ───────────────────────────────────
-  - name: registration-service
-    url: http://registration-service:8082
-    connect_timeout: 10000
-    read_timeout: 30000
-    routes:
-      - name: registration-routes
-        paths:
-          - /api/v1/registration
-        strip_path: false
-        methods:
-          - POST
-          - OPTIONS
-
-  # ── Servicio 4 ─────────────────────────────────────────────
+  # ── Servicio 3 ─────────────────────────────────────────────
   # - name: nombre-servicio
   #   url: http://nombre-servicio:808X
+  #   connect_timeout: 10000
+  #   read_timeout: 30000
   #   routes:
   #     - name: nombre-routes
   #       paths:
   #         - /api/v1/nombre
   #       strip_path: false
 
-  # ── Servicio 5 ... 12: mismo patrón ────────────────────────
+  # ── Servicios 4 ... 12: mismo patrón ───────────────────────
 
 
 # ─────────────────────────────────────────────────────────────
@@ -76,6 +83,16 @@ services:
 # ─────────────────────────────────────────────────────────────
 plugins:
 
+  # ── JWT — valida el token antes de llegar al servicio ───────
+  # Auth-service tiene jwt: disabled arriba, todos los demás lo requieren
+  - name: jwt
+    config:
+      key_claim_name: iss          # busca el consumer por el claim `iss`
+      claims_to_verify:
+        - exp                      # verifica que el token no haya expirado
+      run_on_preflight: false
+
+  # ── CORS ────────────────────────────────────────────────────
   - name: cors
     config:
       origins:
@@ -96,6 +113,7 @@ plugins:
       credentials: true
       max_age: 3600
 
+  # ── Rate limiting ────────────────────────────────────────────
   - name: rate-limiting
     config:
       minute: 100
@@ -104,6 +122,7 @@ plugins:
       fault_tolerant: true
       hide_client_headers: false
 
+  # ── Tamaño máximo de request ─────────────────────────────────
   - name: request-size-limiting
     config:
       allowed_payload_size: 5
