@@ -54,9 +54,10 @@ services:
       USER_SERVICE_URL: http://matchpuff-profile-service:8081
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-900000}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      MAIL_DEV_MODE: "false"
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT:-5672}
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
     depends_on:
       - redis
       - matchpuff-profile-service
@@ -67,7 +68,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       MONGO_URI: ${MONGO_URI}
-      AUTH_SERVICE_URL: http://auth-service:8080
+      AUTH_SERVICE_URL: http://auth-service:9090
 
   # ── Agrega aquí los 10 servicios restantes ─────────────────
   # Sigue el mismo patrón:

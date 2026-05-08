@@ -19,9 +19,8 @@ services:
 
   auth-service:
     ports:
-      - "8080:8080"
+      - "9090:9090"
     environment:
-      MAIL_DEV_MODE: "true"
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-must-be-at-least-32-chars}
 
   user-service:
