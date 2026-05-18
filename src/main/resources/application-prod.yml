@@ -1,0 +1,68 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+
+        # ── Auth Service (público — NO requiere JWT) ──────────────
+        - id: auth-service
+          uri: https://patricia-auth-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - RemoveRequestHeader=Authorization
+
+        # ── Profile Service ───────────────────────────────────────
+        - id: profile-service
+          uri: https://patricia-profile-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io
+          predicates:
+            - Path=/api/v1/users/**, /api/v1/profiles/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Notification Service ──────────────────────────────────
+        - id: notification-service
+          uri: https://patricia-notificati-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Hangout Service ───────────────────────────────────────
+        - id: hangout-service
+          uri: https://patricia-hangout-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io
+          predicates:
+            - Path=/api/v1/hangouts/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Gamification Service ──────────────────────────────────
+        - id: gamification-service
+          uri: https://patricia-gamificati-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io
+          predicates:
+            - Path=/api/v1/gamification/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Campus Events Service ─────────────────────────────────
+        - id: campus-events-service
+          uri: https://patricia-campus-events-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io
+          predicates:
+            - Path=/api/v1/events/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Chat Service ──────────────────────────────────────────
+        - id: chat-service
+          uri: https://patricia-chat-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io
+          predicates:
+            - Path=/api/v1/chat/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Social Matching Service ───────────────────────────────
+        - id: social-matching-service
+          uri: https://patricia-social-matching-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io
+          predicates:
+            - Path=/api/v1/matching/**
+          filters:
+            - name: JwtAuthFilter
