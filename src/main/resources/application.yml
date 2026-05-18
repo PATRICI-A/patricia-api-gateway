@@ -6,7 +6,101 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      routes: []
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            exposedHeaders:
+              - Authorization
+      routes:
+
+        # ── Auth Service (público — NO requiere JWT) ──────────────
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:https://patricia-auth-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io}
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - RemoveRequestHeader=Authorization
+
+        # ── Profile Service ───────────────────────────────────────
+        - id: profile-service
+          uri: ${PROFILE_SERVICE_URL:https://PENDING}
+          predicates:
+            - Path=/api/v1/users/**, /api/v1/profiles/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Notification Service ──────────────────────────────────
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:https://patricia-notificati-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io}
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Hangout Service ───────────────────────────────────────
+        - id: hangout-service
+          uri: ${HANGOUT_SERVICE_URL:https://patricia-hangout-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io}
+          predicates:
+            - Path=/api/v1/hangouts/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Gamification Service ──────────────────────────────────
+        - id: gamification-service
+          uri: ${GAMIFICATION_SERVICE_URL:https://patricia-gamificati-service-prod.ambitiousocean-47ea546c.eastus.azurecontainerapps.io}
+          predicates:
+            - Path=/api/v1/gamification/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Feed & Search Service ─────────────────────────────────
+        - id: feed-search-service
+          uri: ${FEED_SEARCH_SERVICE_URL:https://PENDING}
+          predicates:
+            - Path=/api/v1/feed/**, /api/v1/search/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Chat Service ──────────────────────────────────────────
+        - id: chat-service
+          uri: ${CHAT_SERVICE_URL:https://patricia-chat-service.ambitiousocean-47ea546c.eastus.azurecontainerapps.io}
+          predicates:
+            - Path=/api/v1/chat/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Geolocalization Service ───────────────────────────────
+        - id: geo-service
+          uri: ${GEO_SERVICE_URL:https://PENDING}
+          predicates:
+            - Path=/api/v1/geo/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Statistics Service ────────────────────────────────────
+        - id: statistics-service
+          uri: ${STATISTICS_SERVICE_URL:https://patricia-statistics-analytics.ambitiousocean-47ea546c.eastus.azurecontainerapps.io}
+          predicates:
+            - Path=/api/v1/statistics/**
+          filters:
+            - name: JwtAuthFilter
+
+        # ── Social Matching Service ───────────────────────────────
+        - id: social-matching-service
+          uri: ${SOCIAL_MATCHING_SERVICE_URL:https://PENDING}
+          predicates:
+            - Path=/api/v1/matching/**
+          filters:
+            - name: JwtAuthFilter
 
 jwt:
   secret: ${JWT_SECRET}
