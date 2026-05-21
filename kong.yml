@@ -1,0 +1,301 @@
+_format_version: "3.0"
+_transform: true
+
+consumers:
+  - username: patricia-services
+    jwt_secrets:
+      - key: "patricia-auth-service"
+        secret: "${JWT_SECRET}"
+
+services:
+  - name: auth-service
+    url: ${URL_AUTH}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: auth-routes
+        paths:
+          - /api/v1/auth
+        strip_path: false
+        methods:
+          - POST
+          - OPTIONS
+
+  - name: profile-service
+    url: ${URL_PROFILE}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: profile-routes
+        paths:
+          - /api/v1/users
+          - /api/v1/profiles
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+      - name: profile-internal-routes
+        paths:
+          - /api/v1/internal
+        strip_path: false
+        methods:
+          - GET
+          - PATCH
+    plugins:
+      - name: jwt
+
+  - name: hangout-service
+    url: ${URL_HANGOUT}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: hangout-parches-routes
+        paths:
+          - /api/v1/parches
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PATCH
+          - DELETE
+          - OPTIONS
+      - name: hangout-invitaciones-routes
+        paths:
+          - /api/v1/invitaciones
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PATCH
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+  - name: chat-service
+    url: ${URL_CHAT}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: chat-messages-routes
+        paths:
+          - /api/parches
+        strip_path: false
+        methods:
+          - GET
+          - OPTIONS
+      - name: chat-connections-routes
+        paths:
+          - /api/connections
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PATCH
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+  - name: notification-service
+    url: ${URL_NOTIFICATION}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: notification-routes
+        paths:
+          - /api/notifications
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PUT
+          - OPTIONS
+      - name: event-reminder-routes
+        paths:
+          - /api/event-reminders
+        strip_path: false
+        methods:
+          - POST
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+  - name: gamification-service
+    url: ${URL_GAMIFICATION}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: gamification-routes
+        paths:
+          - /api/v1/gamificacion
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PATCH
+          - OPTIONS
+      - name: rewards-routes
+        paths:
+          - /api/v1/rewards
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+  - name: feed-search-service
+    url: ${URL_FEED_SEARCH}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: feed-routes
+        paths:
+          - /api/v1/feed
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+  - name: matching-service
+    url: ${URL_MATCHING}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: matches-routes
+        paths:
+          - /api/v1/matches
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PATCH
+          - OPTIONS
+      - name: categories-routes
+        paths:
+          - /api/v1/categories
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PATCH
+          - DELETE
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+  - name: geo-service
+    url: ${URL_GEO}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: geo-routes
+        paths:
+          - /api/v1/geo
+        strip_path: false
+        methods:
+          - GET
+          - PUT
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+  - name: campus-events-service
+    url: ${URL_EVENTS}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: events-routes
+        paths:
+          - /api/v1/events
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+  - name: statistics-service
+    url: ${URL_ANALYTICS}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: analytics-reports-routes
+        paths:
+          - /api/analytics
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - OPTIONS
+      - name: analytics-dashboard-routes
+        paths:
+          - /api/v1/analytics
+        strip_path: false
+        methods:
+          - GET
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+  - name: support-service
+    url: ${URL_SUPPORT}
+    connect_timeout: 10000
+    read_timeout: 30000
+    routes:
+      - name: support-routes
+        paths:
+          - /api/v1/support
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+    plugins:
+      - name: jwt
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - Accept
+      exposed_headers:
+        - Authorization
+      credentials: true
+      max_age: 3600
+
+  - name: rate-limiting
+    config:
+      minute: 100
+      hour: 3000
+      policy: local
+      fault_tolerant: true
+      hide_client_headers: false
+
+  - name: request-size-limiting
+    config:
+      allowed_payload_size: 5

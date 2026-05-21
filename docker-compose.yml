@@ -1,90 +1,34 @@
-version: '3.8'
-
-# ─────────────────────────────────────────────────────────────
-#  PATRICIA – API Gateway + microservicios
-#  Uso: docker-compose --env-file .env up -d
-# ─────────────────────────────────────────────────────────────
+version: '3.9'
 
 services:
-
-  # ── Infraestructura ────────────────────────────────────────
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD:-}
-    volumes:
-      - redis_data:/data
-
-  # ── API Gateway ────────────────────────────────────────────
-
   kong:
-    image: kong:3.7
+    build: .
+    container_name: patricia-api-gateway
     restart: unless-stopped
     environment:
       KONG_DATABASE: "off"
-      KONG_DECLARATIVE_CONFIG: /kong/kong.yml
-      KONG_PROXY_LISTEN: "0.0.0.0:8000"
-      KONG_ADMIN_LISTEN: "127.0.0.1:8001"
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_LISTEN: "0.0.0.0:8000 reuseport"
       KONG_LOG_LEVEL: warn
-    volumes:
-      - ./kong/kong.yml:/kong/kong.yml:ro
+
+      JWT_SECRET: ${JWT_SECRET}
+
+      URL_AUTH: ${URL_AUTH}
+      URL_PROFILE: ${URL_PROFILE}
+      URL_HANGOUT: ${URL_HANGOUT}
+      URL_CHAT: ${URL_CHAT}
+      URL_NOTIFICATION: ${URL_NOTIFICATION}
+      URL_GAMIFICATION: ${URL_GAMIFICATION}
+      URL_FEED_SEARCH: ${URL_FEED_SEARCH}
+      URL_MATCHING: ${URL_MATCHING}
+      URL_GEO: ${URL_GEO}
+      URL_EVENTS: ${URL_EVENTS}
+      URL_ANALYTICS: ${URL_ANALYTICS}
+      URL_SUPPORT: ${URL_SUPPORT}
+
     ports:
       - "8000:8000"
-    depends_on:
-      - auth-service
-      - user-service
-      - registration-service
-    healthcheck:
-      test: ["CMD", "kong", "health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # ── Microservicios ─────────────────────────────────────────
-
-  auth-service:
-    image: ${AUTH_SERVICE_IMAGE}
-    restart: unless-stopped
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      REDIS_HOST: redis
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      USER_SERVICE_URL: http://user-service:8081
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-900000}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      MAIL_DEV_MODE: "false"
-    depends_on:
-      - redis
-
-  user-service:
-    image: ${USER_SERVICE_IMAGE}
-    restart: unless-stopped
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      MONGO_URI: ${MONGO_URI}
-
-  registration-service:
-    image: ${REGISTRATION_SERVICE_IMAGE}
-    restart: unless-stopped
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      AUTH_SERVICE_URL: http://auth-service:8080
-      USER_SERVICE_URL: http://user-service:8081
-
-  # ── Agrega aquí los 9 servicios restantes ──────────────────
-  # Sigue el mismo patrón:
-  #
-  # nombre-servicio:
-  #   image: ${NOMBRE_SERVICIO_IMAGE}
-  #   restart: unless-stopped
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: prod
-  #     <variables propias del servicio>
-  #
-  # Y agrega la ruta correspondiente en kong/kong.yml
-
-volumes:
-  redis_data:
+    env_file: .env
