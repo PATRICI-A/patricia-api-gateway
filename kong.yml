@@ -60,8 +60,6 @@ services:
         methods:
           - GET
           - PATCH
-        plugins:
-          - name: jwt
 
   - name: hangout-service
     url: ${URL_HANGOUT}
