@@ -253,15 +253,22 @@ services:
     connect_timeout: 10000
     read_timeout: 30000
     routes:
-      - name: support-routes
+      - name: support-bienestar-routes
         paths:
-          - /api/v1/support
+          - /api/v1/bienestar
+        strip_path: false
+        methods:
+          - GET
+          - POST
+          - OPTIONS
+      - name: support-wellness-routes
+        paths:
+          - /api/v1/wellness
         strip_path: false
         methods:
           - GET
           - POST
           - PUT
-          - PATCH
           - DELETE
           - OPTIONS
     plugins:
