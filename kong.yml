@@ -26,6 +26,13 @@ services:
     connect_timeout: 10000
     read_timeout: 30000
     routes:
+      - name: profile-registration-student
+        paths:
+          - /api/v1/users/student
+        strip_path: false
+        methods:
+          - POST
+          - OPTIONS
       - name: profile-routes
         paths:
           - /api/v1/users
@@ -38,6 +45,8 @@ services:
           - PATCH
           - DELETE
           - OPTIONS
+        plugins:
+          - name: jwt
       - name: profile-internal-routes
         paths:
           - /api/v1/internal
@@ -45,8 +54,8 @@ services:
         methods:
           - GET
           - PATCH
-    plugins:
-      - name: jwt
+        plugins:
+          - name: jwt
 
   - name: hangout-service
     url: ${URL_HANGOUT}
