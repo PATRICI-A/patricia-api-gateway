@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(az containerapp show *)",
+      "Bash(docker info *)",
+      "Bash(docker login *)",
+      "Bash(docker push *)",
+      "Bash(az containerapp update *)"
+    ]
+  }
+}

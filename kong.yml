@@ -169,6 +169,7 @@ services:
       - name: feed-routes
         paths:
           - /api/v1/feed
+          - /api/v1/parches/search
         strip_path: false
         methods:
           - GET
